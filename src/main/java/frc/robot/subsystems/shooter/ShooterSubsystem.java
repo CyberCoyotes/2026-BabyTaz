@@ -67,6 +67,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final StatusSignal<Temperature> tempA;
     private final StatusSignal<Temperature> tempB;
     private final StatusSignal<Temperature> tempC;
+    private final StatusSignal<AngularVelocity> indexerVelocity;
     private final StatusSignal<Current> indexerCurrent;
     private final StatusSignal<Temperature> indexerTemp;
 
@@ -77,6 +78,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private final TunableNumber kS = new TunableNumber("Shooter", "kS", 0.0, 0, 0, 1, 1);
     private final TunableNumber indexerOutput = new TunableNumber("Shooter", "IndexerOutput", INDEXER_DEFAULT_OUTPUT, 0, 0, 2, 1);
     private final TunableNumber spinUpTolerance = new TunableNumber("Shooter", "SpinUpTolerance", 0.05, 0, 0, 2, 1); // 5% default
+    private final TunableNumber spinUpTimeout = new TunableNumber("Shooter", "SpinUpTimeout", 3.0, 0, 0, 2, 1); // 3 second default
 
     // ====== TELEMETRY ======
     private final NetworkTable elasticTable;
@@ -101,11 +103,12 @@ public class ShooterSubsystem extends SubsystemBase {
         tempA = flywheelA.getDeviceTemp();
         tempB = flywheelB.getDeviceTemp();
         tempC = flywheelC.getDeviceTemp();
+        indexerVelocity = indexer.getRotorVelocity();
         indexerCurrent = indexer.getStatorCurrent();
         indexerTemp = indexer.getDeviceTemp();
 
         // Set update frequencies
-        BaseStatusSignal.setUpdateFrequencyForAll(100, velocityA, velocityB, velocityC, voltageA);
+        BaseStatusSignal.setUpdateFrequencyForAll(100, velocityA, velocityB, velocityC, voltageA, indexerVelocity);
         BaseStatusSignal.setUpdateFrequencyForAll(50, currentA, currentB, currentC, indexerCurrent);
         BaseStatusSignal.setUpdateFrequencyForAll(4, tempA, tempB, tempC, indexerTemp);
 
@@ -171,7 +174,7 @@ public class ShooterSubsystem extends SubsystemBase {
                 velocityA, velocityB, velocityC,
                 voltageA, currentA, currentB, currentC,
                 tempA, tempB, tempC,
-                indexerCurrent, indexerTemp);
+                indexerVelocity, indexerCurrent, indexerTemp);
 
         // Check for live PID changes from Elastic
         if (kP.hasChanged() || kV.hasChanged() || kS.hasChanged()) {
@@ -237,6 +240,11 @@ public class ShooterSubsystem extends SubsystemBase {
     public void stopIndexer() {
         indexerRunning = false;
         indexer.stopMotor();
+    }
+
+    /** Get indexer velocity in RPM. */
+    public double getIndexerRPM() {
+        return indexerVelocity.getValueAsDouble() * 60.0; // RPS to RPM
     }
 
     /** Get indexer current draw in amps. */
@@ -317,6 +325,11 @@ public class ShooterSubsystem extends SubsystemBase {
         return running && isAtTargetRPM();
     }
 
+    /** Get the spin-up timeout in seconds. */
+    public double getSpinUpTimeout() {
+        return spinUpTimeout.get();
+    }
+
     // ====== PRIVATE HELPERS ======
 
     private void applyPIDUpdates() {
@@ -353,6 +366,7 @@ public class ShooterSubsystem extends SubsystemBase {
         Logger.recordOutput("Shooter/AtTarget", isAtTargetRPM());
         Logger.recordOutput("Shooter/ReadyToFire", isReadyToFire());
         Logger.recordOutput("Shooter/SpinUpTolerance", spinUpTolerance.get());
+        Logger.recordOutput("Shooter/SpinUpTimeout", spinUpTimeout.get());
         Logger.recordOutput("Shooter/MotorA_RPM", getMotorRPM(0));
         Logger.recordOutput("Shooter/MotorB_RPM", getMotorRPM(1));
         Logger.recordOutput("Shooter/MotorC_RPM", getMotorRPM(2));
@@ -362,6 +376,7 @@ public class ShooterSubsystem extends SubsystemBase {
         Logger.recordOutput("Shooter/AppliedVolts", voltageA.getValueAsDouble());
         Logger.recordOutput("Shooter/IndexerRunning", indexerRunning);
         Logger.recordOutput("Shooter/IndexerOutput", indexerOutput.get());
+        Logger.recordOutput("Shooter/IndexerRPM", getIndexerRPM());
         Logger.recordOutput("Shooter/IndexerCurrentAmps", getIndexerCurrentAmps());
         Logger.recordOutput("Shooter/IndexerTempC", getIndexerTempCelsius());
 
@@ -373,6 +388,7 @@ public class ShooterSubsystem extends SubsystemBase {
         elasticTable.getEntry("AtTarget").setBoolean(isAtTargetRPM());
         elasticTable.getEntry("ReadyToFire").setBoolean(isReadyToFire());
         elasticTable.getEntry("SpinUpTolerance").setDouble(spinUpTolerance.get());
+        elasticTable.getEntry("SpinUpTimeout").setDouble(spinUpTimeout.get());
         elasticTable.getEntry("MotorA_RPM").setDouble(getMotorRPM(0));
         elasticTable.getEntry("MotorB_RPM").setDouble(getMotorRPM(1));
         elasticTable.getEntry("MotorC_RPM").setDouble(getMotorRPM(2));
@@ -381,6 +397,7 @@ public class ShooterSubsystem extends SubsystemBase {
         elasticTable.getEntry("MaxTempC").setDouble(getMaxTempCelsius());
         elasticTable.getEntry("IndexerRunning").setBoolean(indexerRunning);
         elasticTable.getEntry("IndexerOutput").setDouble(indexerOutput.get());
+        elasticTable.getEntry("IndexerRPM").setDouble(getIndexerRPM());
         elasticTable.getEntry("IndexerAmps").setDouble(getIndexerCurrentAmps());
     }
 }

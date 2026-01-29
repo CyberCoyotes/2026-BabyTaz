@@ -26,15 +26,17 @@ public class ShooterCommands {
 
     /**
      * Spin flywheels and indexer together.
-     * Flywheels spin up first, indexer waits until flywheels are within 5% of target.
+     * Flywheels spin up first, indexer waits until flywheels reach target OR timeout expires.
      * Runs until cancelled.
      */
     public static Command runWithIndexer(ShooterSubsystem shooter) {
         return Commands.sequence(
                 // Start flywheels
                 Commands.runOnce(shooter::run, shooter),
-                // Wait until flywheels reach target (within 5%)
-                Commands.waitUntil(shooter::isAtTargetRPM),
+                // Wait until flywheels reach target OR timeout expires (whichever comes first)
+                Commands.race(
+                        Commands.waitUntil(shooter::isAtTargetRPM),
+                        Commands.waitSeconds(shooter.getSpinUpTimeout())),
                 // Run indexer while continuing to run flywheels
                 Commands.run(shooter::runIndexer, shooter))
                 .finallyDo(() -> {
@@ -58,15 +60,17 @@ public class ShooterCommands {
 
     /**
      * Spin flywheels at a specific RPM with indexer.
-     * Flywheels spin up first, indexer waits until flywheels are within 5% of target.
+     * Flywheels spin up first, indexer waits until flywheels reach target OR timeout expires.
      * Runs until cancelled.
      */
     public static Command runAtRPMWithIndexer(ShooterSubsystem shooter, double rpm) {
         return Commands.sequence(
                 // Start flywheels at specified RPM
                 Commands.runOnce(() -> shooter.runAtRPM(rpm), shooter),
-                // Wait until flywheels reach target (within 5%)
-                Commands.waitUntil(shooter::isAtTargetRPM),
+                // Wait until flywheels reach target OR timeout expires (whichever comes first)
+                Commands.race(
+                        Commands.waitUntil(shooter::isAtTargetRPM),
+                        Commands.waitSeconds(shooter.getSpinUpTimeout())),
                 // Run indexer while continuing to run flywheels
                 Commands.run(shooter::runIndexer, shooter))
                 .finallyDo(() -> {
