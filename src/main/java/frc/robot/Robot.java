@@ -7,10 +7,10 @@ package frc.robot;
 import com.ctre.phoenix6.SignalLogger;
 
 import edu.wpi.first.math.util.Units;
-import org.littletonrobotics.junction.LogFileUtil;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+// import org.littletonrobotics.junction.LogFileUtil;
+// import org.littletonrobotics.junction.Logger;
+// import org.littletonrobotics.junction.networktables.NT4Publisher;
+// import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -29,13 +29,14 @@ public class Robot extends TimedRobot {
     private final boolean kUseLimelight = false;
 
     // Telemetry and monitoring systems
-    private final MatchDataLogger matchDataLogger = new MatchDataLogger();
+    // private final MatchDataLogger matchDataLogger = new MatchDataLogger();
     private final PerformanceMonitor performanceMonitor = new PerformanceMonitor();
     private final PowerMonitor powerMonitor = new PowerMonitor();
     private final AlertManager alertManager = new AlertManager();
 
     public Robot() {
         // Configure AdvantageKit logging
+        /* 
         Logger.recordMetadata("ProjectName", "BabyTaz");
 
         if (isReal()) {
@@ -50,8 +51,8 @@ public class Robot extends TimedRobot {
             // Replay mode or simulation - just publish to NT
             Logger.addDataReceiver(new NT4Publisher());
         }
-
-        Logger.start();
+*/
+        // Logger.start();
 
         m_robotContainer = new RobotContainer();
     }
@@ -99,7 +100,7 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         // Log match start
-        matchDataLogger.logMatchStart();
+        // matchDataLogger.logMatchStart();
 
         m_autonomousCommand = m_robotContainer.getAutonomousCommand();
 
@@ -116,7 +117,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousExit() {
-        matchDataLogger.logMatchEnd();
+        // matchDataLogger.logMatchEnd();
     }
 
     @Override

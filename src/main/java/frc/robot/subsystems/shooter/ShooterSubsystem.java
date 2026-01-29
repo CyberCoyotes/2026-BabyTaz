@@ -1,7 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -39,10 +37,10 @@ public class ShooterSubsystem extends SubsystemBase {
     public static final int FLYWHEEL_A_ID = 25;
     public static final int FLYWHEEL_B_ID = 26;
     public static final int FLYWHEEL_C_ID = 27;
-    public static final int INDEXER_ID = 99; // TODO: Assign actual CAN ID
+    public static final int INDEXER_ID = 22; // TODO: Assign actual CAN ID
 
     private static final double GEAR_RATIO = 1.5; // Motor rotations per flywheel rotation
-    private static final double INDEXER_DEFAULT_OUTPUT = 0.8; // Default duty cycle for indexer
+    private static final double INDEXER_DEFAULT_OUTPUT = 0.25; // TODO Default duty cycle for indexer
 
     // ====== HARDWARE ======
     private final TalonFX flywheelA = new TalonFX(FLYWHEEL_A_ID);
@@ -126,7 +124,7 @@ public class ShooterSubsystem extends SubsystemBase {
         var config = new TalonFXConfiguration();
 
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         config.CurrentLimits.SupplyCurrentLimit = 60.0;
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
@@ -357,28 +355,6 @@ public class ShooterSubsystem extends SubsystemBase {
     private void updateTelemetry() {
         double avgRPM = getAverageRPM();
         double target = targetRPM.get();
-
-        // AdvantageKit logging
-        Logger.recordOutput("Shooter/Running", running);
-        Logger.recordOutput("Shooter/TargetRPM", target);
-        Logger.recordOutput("Shooter/AverageRPM", avgRPM);
-        Logger.recordOutput("Shooter/RPMError", target - avgRPM);
-        Logger.recordOutput("Shooter/AtTarget", isAtTargetRPM());
-        Logger.recordOutput("Shooter/ReadyToFire", isReadyToFire());
-        Logger.recordOutput("Shooter/SpinUpTolerance", spinUpTolerance.get());
-        Logger.recordOutput("Shooter/SpinUpTimeout", spinUpTimeout.get());
-        Logger.recordOutput("Shooter/MotorA_RPM", getMotorRPM(0));
-        Logger.recordOutput("Shooter/MotorB_RPM", getMotorRPM(1));
-        Logger.recordOutput("Shooter/MotorC_RPM", getMotorRPM(2));
-        Logger.recordOutput("Shooter/VelocitySpread", getVelocitySpread());
-        Logger.recordOutput("Shooter/TotalCurrentAmps", getTotalCurrentAmps());
-        Logger.recordOutput("Shooter/MaxTempC", getMaxTempCelsius());
-        Logger.recordOutput("Shooter/AppliedVolts", voltageA.getValueAsDouble());
-        Logger.recordOutput("Shooter/IndexerRunning", indexerRunning);
-        Logger.recordOutput("Shooter/IndexerOutput", indexerOutput.get());
-        Logger.recordOutput("Shooter/IndexerRPM", getIndexerRPM());
-        Logger.recordOutput("Shooter/IndexerCurrentAmps", getIndexerCurrentAmps());
-        Logger.recordOutput("Shooter/IndexerTempC", getIndexerTempCelsius());
 
         // Elastic Dashboard (live display)
         elasticTable.getEntry("Running").setBoolean(running);
