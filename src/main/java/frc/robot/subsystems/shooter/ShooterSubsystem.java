@@ -126,9 +126,9 @@ public class ShooterSubsystem extends SubsystemBase {
         config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        config.CurrentLimits.SupplyCurrentLimit = 60.0;
+        config.CurrentLimits.SupplyCurrentLimit = 45.0; // TODO Verify limits
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 80.0;
+        config.CurrentLimits.StatorCurrentLimit = 60.0; // TODO Verify limits
         config.CurrentLimits.StatorCurrentLimitEnable = true;
 
         // Velocity PID - Slot 0
@@ -157,9 +157,9 @@ public class ShooterSubsystem extends SubsystemBase {
         // TODO: Verify indexer motor direction matches mechanical setup
         config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
-        config.CurrentLimits.SupplyCurrentLimit = 40.0;
+        config.CurrentLimits.SupplyCurrentLimit = 45.0; // TODO Verify limits
         config.CurrentLimits.SupplyCurrentLimitEnable = true;
-        config.CurrentLimits.StatorCurrentLimit = 60.0;
+        config.CurrentLimits.StatorCurrentLimit = 75.0; // TODO Verify limits
         config.CurrentLimits.StatorCurrentLimitEnable = true;
 
         indexer.getConfigurator().apply(config);
