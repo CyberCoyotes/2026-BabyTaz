@@ -15,6 +15,7 @@ import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -25,6 +26,8 @@ import edu.wpi.first.networktables.DoublePublisher;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.led.LEDSubsystem;
+import frc.robot.subsystems.led.LEDState;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -44,6 +47,9 @@ public class RobotContainer {
     private final CommandXboxController joystick = new CommandXboxController(0);
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+
+    /* LED subsystem for CANdle test */
+    private final LEDSubsystem ledSubsystem = new LEDSubsystem();
 
     /* Path follower */
     private final AutoFactory autoFactory;
@@ -95,12 +101,11 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-joystick.getLeftY(), -joystick.getLeftX()))
         ));
 
-        joystick.povUp().whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(0.5).withVelocityY(0))
-        );
-        joystick.povDown().whileTrue(drivetrain.applyRequest(() ->
-            forwardStraight.withVelocityX(-0.5).withVelocityY(0))
-        );
+        // LED test bindings - D-pad cycles through states
+        joystick.povUp().onTrue(new InstantCommand(() -> ledSubsystem.setState(LEDState.ERROR)));        // Red
+        joystick.povRight().onTrue(new InstantCommand(() -> ledSubsystem.setState(LEDState.ENABLED)));   // Green
+        joystick.povDown().onTrue(new InstantCommand(() -> ledSubsystem.setState(LEDState.AUTONOMOUS))); // Blue (rainbow animation)
+        joystick.povLeft().onTrue(new InstantCommand(() -> ledSubsystem.setState(LEDState.OFF)));         // Off
 
         // Run SysId routines when holding back/start and X/Y.
         // Note that each routine should be run exactly once in a single log.

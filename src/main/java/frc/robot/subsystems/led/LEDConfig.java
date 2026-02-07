@@ -1,52 +1,27 @@
 package frc.robot.subsystems.led;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.ctre.phoenix.led.CANdle.LEDStripType;
-import com.ctre.phoenix.led.CANdle.VBatOutputMode;
-
-@SuppressWarnings("unused")
+import com.ctre.phoenix6.signals.StripTypeValue;
+import com.ctre.phoenix6.signals.StatusLedWhenActiveValue;
 
 public class LEDConfig {
     public static final class Constants {
         public static final int CANDLE_ID = 30; // CAN ID of the LED controller
-        public static final int LED_COUNT = 30; 
-        public static final double DEFAULT_BRIGHTNESS = 0.0; // Turned off LEDs for now
+        public static final int ONBOARD_LED_COUNT = 8; // CANdle has 8 onboard LEDs
+        public static final int STRIP_LED_COUNT = 30; // External LED strip count
+        public static final int STRIP_START_INDEX = ONBOARD_LED_COUNT; // Strip starts after onboard
+        public static final int STRIP_END_INDEX = ONBOARD_LED_COUNT + STRIP_LED_COUNT - 1;
+        public static final double DEFAULT_BRIGHTNESS = 1.0; // Full brightness for testing
     }
 
-    // Configuration properties
-    public int ledCount;
+    public StripTypeValue stripType;
     public double brightness;
-    public LEDStripType stripType;
-    public boolean statusLedOffWhenActive;
-    public VBatOutputMode vBatOutputMode;
-    public boolean disableWhenLOS;
-    
+    public StatusLedWhenActiveValue statusLedWhenActive;
+
     public static LEDConfig defaultConfig() {
         LEDConfig config = new LEDConfig();
-        config.ledCount = Constants.LED_COUNT; // TODO Count the LEDs for a strip
-        config.brightness = Constants.DEFAULT_BRIGHTNESS; // 0.0 to 1.0
-        config.stripType = LEDStripType.GRB; // TODO Determine actual strip type
-        config.statusLedOffWhenActive = true;
-        config.vBatOutputMode = VBatOutputMode.Modulated; // TODO Determine actual mode
-        config.disableWhenLOS = false;
+        config.stripType = StripTypeValue.RGB;
+        config.brightness = Constants.DEFAULT_BRIGHTNESS;
+        config.statusLedWhenActive = StatusLedWhenActiveValue.Disabled;
         return config;
     }
-
-    // Zone definition for LED segments
-    public static class Zone {
-        public final int startIndex;
-        public final int length;
-        public final String name;
-        
-        public Zone(int start, int length, String name) {
-            this.startIndex = start;
-            this.length = length;
-            this.name = name;
-        }
-    }
-
-    public List<Zone> zones = new ArrayList<>();
 }
-

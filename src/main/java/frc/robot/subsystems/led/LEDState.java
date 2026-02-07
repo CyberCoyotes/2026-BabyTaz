@@ -1,9 +1,5 @@
 package frc.robot.subsystems.led;
 
-import com.ctre.phoenix.led.RainbowAnimation;
-
-@SuppressWarnings("unused") // Suppresses unused variable warning
-
 public enum LEDState {
     OFF(0, 0, 0),                    // Black (completely off)
     ENABLED(0, 255, 0),             // Pure Green
