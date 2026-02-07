@@ -25,6 +25,8 @@ import edu.wpi.first.networktables.DoublePublisher;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.led.LEDSubsystem;
+import frc.robot.subsystems.led.LEDTestDashboard;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -49,6 +51,9 @@ public class RobotContainer {
     private final AutoFactory autoFactory;
     private final AutoRoutines autoRoutines;
     private final AutoChooser autoChooser = new AutoChooser();
+
+    private final LEDSubsystem leds = new LEDSubsystem();
+    private final LEDTestDashboard ledTestDashboard = new LEDTestDashboard(leds);
 
     public RobotContainer() {
         

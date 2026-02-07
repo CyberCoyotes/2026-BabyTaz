@@ -191,6 +191,18 @@ public LEDSubsystem() {
         }
     }
 
+    /**
+     * Updates the CANdle hardware brightness scalar by reapplying config.
+     * This is intended for LED strip testing and setup.
+     *
+     * @param brightnessScalar Brightness scalar (0.0 to 1.0)
+     */
+    public void setHardwareBrightnessScalar(double brightnessScalar) {
+        LEDConfig config = LEDConfig.defaultConfig();
+        config.brightness = Math.min(1.0, Math.max(0.0, brightnessScalar));
+        hardware.configure(config);
+    }
+
     private LEDState lastState = LEDState.OFF;
 
     public void setVisionLEDState(boolean on) {
