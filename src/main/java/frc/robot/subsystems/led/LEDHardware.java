@@ -5,7 +5,7 @@ import com.ctre.phoenix.led.*;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.Timer;
 
-@SuppressWarnings("unused") // Suppresses unused variable warning
+@SuppressWarnings({"unused", "removal"}) // Phoenix 5 CANdle API marked for removal but still required
 
 public class LEDHardware {
     // Hardware state tracking
@@ -14,7 +14,7 @@ public class LEDHardware {
     private LEDConfig config;
     private boolean isConfigured = false;
     private int configRetryCount = 0;
-    private static final int MAX_CONFIG_RETRIES = 3;
+    private static final int MAX_CONFIG_RETRIES = 5; // Increased from 3 to 5
     private double lastUpdateTime = 0;
     
     // Diagnostic data structure (simplified from previous LEDIOInputs)
@@ -30,14 +30,33 @@ public class LEDHardware {
     
     public LEDHardware() {
         // Using the constant directly since we know we're using CANdle
+        // Try "rio" explicitly instead of empty string
         candle = new CANdle(LEDConfig.Constants.CANDLE_ID, "rio");
         config = LEDConfig.defaultConfig();
-        DataLogManager.log("LEDHardware: Initialized with CANdle ID " + LEDConfig.Constants.CANDLE_ID);
+        DataLogManager.log("LEDHardware: Initializing CANdle with ID " + LEDConfig.Constants.CANDLE_ID + " on 'rio' CAN bus");
+
+        // Give the CANdle time to boot up before configuration
+        Timer.delay(0.25);
     }
 
     public void configure(LEDConfig config) {
         this.config = config;
         configRetryCount = 0;
+
+        // Try factory default first to clear any bad configuration
+        DataLogManager.log("LEDHardware: Applying factory default...");
+        try {
+            var factoryDefaultError = candle.configFactoryDefault(1000); // Increased timeout
+            if (factoryDefaultError.value == 0) {
+                DataLogManager.log("LEDHardware: Factory default successful");
+            } else {
+                DataLogManager.log("LEDHardware: Factory default returned error: " + factoryDefaultError + " - continuing anyway");
+            }
+        } catch (Exception e) {
+            DataLogManager.log("LEDHardware: Factory default threw exception: " + e.getMessage() + " - continuing anyway");
+        }
+        Timer.delay(0.2);
+
         attemptConfiguration();
     }
 
@@ -50,7 +69,14 @@ public class LEDHardware {
             candleConfig.vBatOutputMode = config.vBatOutputMode;
             candleConfig.disableWhenLOS = config.disableWhenLOS;
 
-            var error = candle.configAllSettings(candleConfig, 100);
+            DataLogManager.log("LEDHardware: Attempting configuration (attempt " + (configRetryCount + 1) + ") with brightness=" + config.brightness +
+                             ", stripType=" + config.stripType);
+
+            // Use long timeout for more reliable configuration
+            var error = candle.configAllSettings(candleConfig, 1000);
+
+            DataLogManager.log("LEDHardware: configAllSettings returned: " + error + " (value=" + error.value + ")");
+
             if (error.value != 0) {
                 handleConfigError(error);
                 return;
@@ -58,9 +84,10 @@ public class LEDHardware {
 
             isConfigured = true;
             configRetryCount = 0;
-            DataLogManager.log("LEDHardware: Successfully configured");
+            DataLogManager.log("LEDHardware: ✓ Successfully configured");
         } catch (Exception e) {
             DataLogManager.log("LEDHardware: Configuration failed with exception: " + e.getMessage());
+            e.printStackTrace();
             handleConfigError(null);
         }
     }
@@ -68,14 +95,19 @@ public class LEDHardware {
     private void handleConfigError(ErrorCode error) {
         configRetryCount++;
         isConfigured = false;
-        
+
+        String errorMsg = (error != null ? error.toString() : "Unknown error");
+
         if (configRetryCount < MAX_CONFIG_RETRIES) {
-            DataLogManager.log("LEDHardware: Configuration attempt " + configRetryCount + 
-                             " failed. Error: " + (error != null ? error.toString() : "Unknown"));
-            Timer.delay(0.1);
+            DataLogManager.log("LEDHardware: Configuration attempt " + configRetryCount +
+                             " failed. Error: " + errorMsg + " - retrying...");
+            Timer.delay(0.3); // Increased delay between retries
             attemptConfiguration();
         } else {
-            DataLogManager.log("LEDHardware: Configuration failed after " + MAX_CONFIG_RETRIES + " attempts");
+            DataLogManager.log("LEDHardware: FAILED - Configuration failed after " + MAX_CONFIG_RETRIES +
+                             " attempts. Error: " + errorMsg);
+            DataLogManager.log("LEDHardware: Check that CANdle with ID " + LEDConfig.Constants.CANDLE_ID +
+                             " is connected to 'rio' CAN bus and powered on");
         }
     }
 

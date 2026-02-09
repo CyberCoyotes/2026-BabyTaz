@@ -113,15 +113,21 @@ public LEDSubsystem() {
         
     }
 
+    private boolean hasLoggedConfigFailure = false;
+
     @Override
     public void periodic() {
         var status = hardware.getStatus();
 
         if (status.isConfigured) {
             updateLEDs();
-        } else if (status.configAttempts >= 3) {
+        } else if (status.configAttempts >= 5) {
             currentState = LEDState.ERROR;
-            DataLogManager.log("LEDSubsystem: Hardware configuration failed, entering ERROR state");
+            if (!hasLoggedConfigFailure) {
+                DataLogManager.log("LEDSubsystem: Hardware configuration failed after 5 attempts - CANdle not responding");
+                DataLogManager.log("LEDSubsystem: Check CANdle ID 30 on 'rio' CAN bus");
+                hasLoggedConfigFailure = true;
+            }
         }
 
         updateTelemetry(status);
@@ -191,6 +197,18 @@ public LEDSubsystem() {
         }
     }
 
+    /**
+     * Updates the CANdle hardware brightness scalar by reapplying config.
+     * This is intended for LED strip testing and setup.
+     *
+     * @param brightnessScalar Brightness scalar (0.0 to 1.0)
+     */
+    public void setHardwareBrightnessScalar(double brightnessScalar) {
+        LEDConfig config = LEDConfig.defaultConfig();
+        config.brightness = Math.min(1.0, Math.max(0.0, brightnessScalar));
+        hardware.configure(config);
+    }
+
     private LEDState lastState = LEDState.OFF;
 
     public void setVisionLEDState(boolean on) {
@@ -209,9 +227,21 @@ public LEDSubsystem() {
         elasticTable.getEntry("AnimationSpeed").setDouble(animationSpeed);
         elasticTable.getEntry("Brightness").setDouble(brightness);
         elasticTable.getEntry("IsConfigured").setBoolean(status.isConfigured);
+        elasticTable.getEntry("ConfigAttempts").setInteger(status.configAttempts);
         elasticTable.getEntry("BusVoltage").setDouble(status.busVoltage);
         elasticTable.getEntry("Current").setDouble(status.current);
         elasticTable.getEntry("Temperature").setDouble(status.temperature);
         elasticTable.getEntry("IsConnected").setBoolean(status.isConnected);
+
+        // Add a status message for easy debugging
+        String statusMsg;
+        if (status.isConfigured) {
+            statusMsg = "OK - CANdle configured and responding";
+        } else if (status.configAttempts >= 5) {
+            statusMsg = "ERROR - CANdle configuration failed after 5 attempts (ID 30)";
+        } else {
+            statusMsg = "Configuring... (attempt " + status.configAttempts + " of 5)";
+        }
+        elasticTable.getEntry("StatusMessage").setString(statusMsg);
     }
 }

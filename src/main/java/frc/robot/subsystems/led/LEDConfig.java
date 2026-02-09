@@ -12,7 +12,7 @@ public class LEDConfig {
     public static final class Constants {
         public static final int CANDLE_ID = 30; // CAN ID of the LED controller
         public static final int LED_COUNT = 30; 
-        public static final double DEFAULT_BRIGHTNESS = 0.0; // Turned off LEDs for now
+        public static final double DEFAULT_BRIGHTNESS = 0.5; // Default brightness (0.0 to 1.0)
     }
 
     // Configuration properties

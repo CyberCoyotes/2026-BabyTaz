@@ -25,6 +25,9 @@ import edu.wpi.first.networktables.DoublePublisher;
 
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.led.LEDSubsystem;
+import frc.robot.subsystems.led.LEDState;
+import frc.robot.subsystems.led.LEDTestDashboard;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -50,7 +53,11 @@ public class RobotContainer {
     private final AutoRoutines autoRoutines;
     private final AutoChooser autoChooser = new AutoChooser();
 
+    private final LEDSubsystem leds = new LEDSubsystem();
+    private final LEDTestDashboard ledTestDashboard;
+
     public RobotContainer() {
+        ledTestDashboard = new LEDTestDashboard(leds);
         
         // TODO Testing NetworkTables publishing
         DoublePublisher testPub = NetworkTableInstance.getDefault()
@@ -112,11 +119,41 @@ public class RobotContainer {
         // Reset the field-centric heading on left bumper press.
         joystick.leftBumper().onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
+        // LED Test Buttons (Hold Right Bumper + ABXY to test different LED states)
+        // RB + A = Green (Enabled)
+        // RB + B = Yellow (Target Visible)
+        // RB + X = Cyan (Intaking with Larson scanner animation)
+        // RB + Y = Rainbow (Autonomous animation)
+        // Right Trigger = OFF
+        joystick.rightBumper().and(joystick.a()).onTrue(
+            leds.runOnce(() -> leds.setState(LEDState.ENABLED))
+        );
+        joystick.rightBumper().and(joystick.b()).onTrue(
+            leds.runOnce(() -> leds.setState(LEDState.TARGET_VISIBLE))
+        );
+        joystick.rightBumper().and(joystick.x()).onTrue(
+            leds.runOnce(() -> leds.setState(LEDState.INTAKING))
+        );
+        joystick.rightBumper().and(joystick.y()).onTrue(
+            leds.runOnce(() -> leds.setState(LEDState.AUTONOMOUS))
+        );
+        joystick.rightTrigger().onTrue(
+            leds.runOnce(() -> leds.setState(LEDState.OFF))
+        );
+
         // drivetrain.registerTelemetry(logger::telemeterize);
     }
 
     public Command getAutonomousCommand() {
         /* Run the routine selected from the auto chooser */
         return autoChooser.selectedCommand();
+    }
+
+    public LEDSubsystem getLEDSubsystem() {
+        return leds;
+    }
+
+    public LEDTestDashboard getLEDTestDashboard() {
+        return ledTestDashboard;
     }
 }
