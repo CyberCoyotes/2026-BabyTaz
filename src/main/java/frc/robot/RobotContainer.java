@@ -46,8 +46,6 @@ public class RobotContainer {
     private final AutoRoutines autoRoutines;
     private final AutoChooser autoChooser = new AutoChooser();
 
-    // TODO Do a code review of this repo please
-    
     public RobotContainer() {
 
         autoFactory = drivetrain.createAutoFactory();
