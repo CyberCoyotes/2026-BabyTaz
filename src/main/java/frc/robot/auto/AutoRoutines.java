@@ -4,7 +4,6 @@ import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.led.LEDSubsystem;
 //import frc.robot.subsystems.turret.TurretSubsystem;
@@ -14,10 +13,10 @@ import frc.robot.subsystems.vision.VisionSubsystem;
 
 public class AutoRoutines {
     private final AutoFactory m_factory;
-    private CommandSwerveDrivetrain m_drivetrain = TunerConstants.createDrivetrain();
+    private final CommandSwerveDrivetrain m_drivetrain;
   //  private final TurretSubsystem m_turret;
-    LEDSubsystem m_leds;
-    VisionSubsystem m_vision;
+    private final LEDSubsystem m_leds;
+    private final VisionSubsystem m_vision;
 
     // Constants
     // Seconds for drivetrain to pause while scoring in autonomous
@@ -41,8 +40,8 @@ public class AutoRoutines {
         // m_elevator = new ElevatorSubsystem(); // Competition robot only
         // m_intake = new IntakeSubsystem(); // Competition robot only
         // m_score = new ScoreSubsystem(); // Competition robot only
-        m_vision = new VisionSubsystem("limelight", m_leds); 
         m_leds = new LEDSubsystem();
+        m_vision = new VisionSubsystem("limelight", m_leds);
 
         }
 
@@ -75,8 +74,8 @@ public class AutoRoutines {
 
                 /* Drive forward from the center position, stop, and score */
                 public AutoRoutine scoreCenterL1() {
-                    final AutoRoutine routine = m_factory.newRoutine("ScoreCenter");
-                    final AutoTrajectory driveForward = routine.trajectory("ScoreCenter");
+                    final AutoRoutine routine = m_factory.newRoutine("ScoreCenterL1");
+                    final AutoTrajectory driveForward = routine.trajectory("ScoreCenterL1");
             
                     routine.active().onTrue(
                             Commands.sequence(
